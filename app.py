@@ -6,19 +6,23 @@ from oauth2client.service_account import ServiceAccountCredentials
 
 st.set_page_config(page_title="ดูผลตรวจสุขภาพ", layout="centered")
 
-# โหลด key จาก Streamlit Secrets
+# โหลดจาก secrets
 service_account_info = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
 
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 creds = ServiceAccountCredentials.from_json_keyfile_dict(service_account_info, scope)
 client = gspread.authorize(creds)
 
-# ดึงข้อมูลจาก Google Sheets
+# อ่าน Google Sheets
 spreadsheet = client.open_by_url("https://docs.google.com/spreadsheets/d/1B_W02AlW7RoV2_qbOHAfVTTYUkKgfyqvjl_IgqQVmzc")
 worksheet = spreadsheet.sheet1
 df = pd.DataFrame(worksheet.get_all_records())
 
-st.title("🔎 ตรวจสอบผลสุขภาพของคุณ")
+# ✅ บังคับให้เลขบัตรเป็น string ทั้งหมด
+df['เลขบัตรประชาชน'] = df['เลขบัตรประชาชน'].astype(str)
+
+# ส่วนต้อนรับ
+st.title("🔍 ตรวจสอบผลสุขภาพของคุณ")
 id_card = st.text_input("กรุณาใส่เลขบัตรประชาชน 13 หลัก")
 
 if id_card:
