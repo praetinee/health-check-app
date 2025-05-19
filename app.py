@@ -33,6 +33,27 @@ def interpret_bmi(bmi):
         return "อ้วนระดับ 2"
 
 # ฟังก์ชันแสดงหมวด BMI
+def calculate_bmi(weight, height_cm):
+    try:
+        height_m = height_cm / 100
+        return round(weight / (height_m ** 2), 1)
+    except:
+        return None
+
+def interpret_bmi(bmi):
+    if not bmi or bmi == 0:
+        return "ไม่มีข้อมูล"
+    elif bmi > 30:
+        return "อ้วนมาก"
+    elif 25 <= bmi <= 30:
+        return "อ้วน"
+    elif 23 <= bmi < 25:
+        return "น้ำหนักเกิน"
+    elif 18.5 <= bmi < 23:
+        return "ปกติ"
+    else:
+        return "ผอม"
+
 def show_bmi(df):
     st.header("⚖️ น้ำหนัก / ส่วนสูง / BMI")
 
@@ -44,20 +65,36 @@ def show_bmi(df):
     bmi_col = f"BMI{selected_year}"
     waist_col = f"รอบเอว{selected_year}"
 
+    weight = df.iloc[0].get(weight_col)
+    height = df.iloc[0].get(height_col)
+    waist = df.iloc[0].get(waist_col)
+
+    # แปลงค่าที่มีให้อยู่ในรูป float ถ้าเป็นไปได้
     try:
-        weight = float(df.iloc[0][weight_col])
-        height_cm = float(df.iloc[0][height_col])
-        bmi = float(df.iloc[0][bmi_col])
-        waist = float(df.iloc[0][waist_col])
-
-        st.metric("น้ำหนัก (กก.)", weight)
-        st.metric("ส่วนสูง (ซม.)", height_cm)
-        st.metric("BMI", bmi)
-        st.metric("รอบเอว (ซม.)", waist)
-        st.success(f"แปลผล: {interpret_bmi(bmi)}")
-
+        weight = float(weight)
     except:
-        st.warning("⚠️ ไม่มีข้อมูลในปีที่เลือก")
+        weight = None
+
+    try:
+        height = float(height)
+    except:
+        height = None
+
+    try:
+        waist = float(waist)
+    except:
+        waist = None
+
+    # คำนวณ BMI จาก weight & height
+    bmi = calculate_bmi(weight, height)
+    bmi_result = interpret_bmi(bmi)
+
+    # แสดงผล
+    st.markdown(f"**น้ำหนัก:** {weight if weight else '-'} กก.")
+    st.markdown(f"**ส่วนสูง:** {height if height else '-'} ซม.")
+    st.markdown(f"**รอบเอว:** {waist if waist else '-'} ซม.")
+    st.markdown(f"**BMI:** {bmi if bmi else '-'}")
+    st.success(f"แปลผล: {bmi_result}")
 
 # --- หน้าแรกของระบบ ---
 st.title("👨‍⚕️ ระบบรายงานผลตรวจสุขภาพ")
