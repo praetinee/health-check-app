@@ -1,15 +1,8 @@
+# 🔹 คำสั่งนี้ต้องอยู่บรรทัดแรกสุด
 import streamlit as st
 st.set_page_config(page_title="ระบบรายงานสุขภาพ", layout="centered")
 
-# ✅ ดึงค่าพารามิเตอร์จาก URL เช่น ?cid=1234567890123
-query_params = st.query_params
-if "cid" in query_params:
-    st.session_state["citizen_id"] = query_params["cid"][0]
-    st.session_state["page"] = "report"
-
-# =============================
-# 🔹 IMPORT MODULES
-# =============================
+# 🔹 ส่วนที่เหลือ
 import pandas as pd
 import gspread
 import json
@@ -17,8 +10,14 @@ from oauth2client.service_account import ServiceAccountCredentials
 from PIL import Image
 import streamlit.components.v1 as components
 
+# 🔹 Query Parameters (รองรับ ?cid=xxxxx)
+query_params = st.query_params
+if "cid" in query_params:
+    st.session_state["citizen_id"] = query_params["cid"]
+    st.session_state["page"] = "report"
+
 # =============================
-# 🔹 LOAD GOOGLE SHEET
+# 🔹 โหลด Google Sheet
 # =============================
 service_account_info = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -31,14 +30,13 @@ data_all = pd.DataFrame(worksheet.get_all_records())
 data_all['เลขบัตรประชาชน'] = data_all['เลขบัตรประชาชน'].astype(str)
 
 # =============================
-# 🔹 HELPER FUNCTIONS
+# 🔹 ฟังก์ชันช่วย
 # =============================
 def load_data_by_citizen_id(citizen_id):
     data = data_all[data_all['เลขบัตรประชาชน'] == citizen_id]
     if not data.empty:
         return data.reset_index(drop=True)
-    else:
-        return None
+    return None
 
 def calculate_bmi(weight, height_cm):
     try:
@@ -62,31 +60,32 @@ def interpret_bmi(bmi):
         return "ผอม"
 
 # =============================
-# 🔹 HOMEPAGE
+# 🔹 หน้า Homepage
 # =============================
 def homepage():
-    # ✅ เปลี่ยน URL ตรงนี้ให้ใช้ raw HTML (ถ้าคุณใช้ GitHub Pages หรือไฟล์ local ให้ปรับอีกที)
-    components.iframe("https://github.com/praetinee/health-check-app/blob/main/index.html", height=650, scrolling=False)
+    st.markdown("## 🧬 ระบบรายงานสุขภาพ")
+    
+    # 🔸 โหลดหน้า HTML จาก GitHub Pages (แนะนำให้คุณเปิดใช้งาน GitHub Pages ก่อน)
+    components.iframe("https://praetinee.github.io/health-check-app/", height=640, scrolling=False)
 
-    st.markdown("### ")
+    # 🔸 ช่องกรอกเลขบัตรด้านล่าง iframe (ซ่อน label)
     st.markdown("## 🔍 กรุณาใส่เลขบัตรประชาชน 13 หลัก")
-    id_input = st.text_input("หมายเลขบัตรประชาชน", max_chars=13, label_visibility="collapsed", placeholder="กรอกเลขบัตรประชาชน 13 หลัก")
+    citizen_id = st.text_input("หมายเลขบัตรประชาชน", max_chars=13, placeholder="กรอกเลขบัตรประชาชน", label_visibility="collapsed")
 
     if st.button("ตรวจสอบ"):
-        if id_input:
-            st.session_state["citizen_id"] = id_input
+        if citizen_id:
+            st.session_state["citizen_id"] = citizen_id
             st.session_state["page"] = "report"
         else:
-            st.warning("กรุณากรอกเลขบัตรประชาชนให้ครบถ้วน")
+            st.warning("⚠️ กรุณากรอกเลขบัตรประชาชนให้ครบถ้วน")
 
 # =============================
-# 🔹 BMI SECTION
+# 🔹 หน้าแสดง BMI
 # =============================
 def show_bmi(df):
     st.header("⚖️ น้ำหนัก / ส่วนสูง / BMI รายปี")
 
-    years = list(range(61, 69))  # พ.ศ. 2561 - 2568
-
+    years = list(range(61, 69))  # 2561 - 2568
     weights, heights, bmis, results = [], [], [], []
 
     for year in years:
@@ -128,20 +127,18 @@ def show_bmi(df):
     st.markdown(" / ".join(results))
 
 # =============================
-# 🔹 ROUTING
+# 🔹 Routing หน้า
 # =============================
 if "page" not in st.session_state:
     st.session_state["page"] = "home"
 
 if st.session_state["page"] == "home":
     homepage()
-
 elif st.session_state["page"] == "report":
     citizen_id = st.session_state.get("citizen_id", "")
     df = load_data_by_citizen_id(citizen_id)
 
     if df is not None:
         show_bmi(df)
-        # 🔁 เพิ่ม show_blood(df), show_urine(df) ได้ภายหลัง
     else:
         st.error("ไม่พบข้อมูลในระบบ กรุณาตรวจสอบเลขบัตรประชาชนอีกครั้ง")
