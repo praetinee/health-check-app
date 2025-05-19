@@ -1,20 +1,30 @@
 # =============================
-# 🔹 IMPORT MODULES
+# ✅ Query Params Check
 # =============================
 import streamlit as st
+
+query_params = st.experimental_get_query_params()
+if "cid" in query_params:
+    st.session_state["citizen_id"] = query_params["cid"][0]
+    st.session_state["page"] = "report"
+
+# =============================
+# ✅ Imports
+# =============================
 import pandas as pd
 import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 from PIL import Image
+import streamlit.components.v1 as components
 
 # =============================
-# 🔹 PAGE CONFIG
+# ✅ Page Config
 # =============================
 st.set_page_config(page_title="ระบบรายงานสุขภาพ", layout="centered")
 
 # =============================
-# 🔹 LOAD GOOGLE SHEET
+# ✅ Load Google Sheet
 # =============================
 service_account_info = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -27,7 +37,7 @@ data_all = pd.DataFrame(worksheet.get_all_records())
 data_all['เลขบัตรประชาชน'] = data_all['เลขบัตรประชาชน'].astype(str)
 
 # =============================
-# 🔹 HELPER FUNCTIONS
+# ✅ Helper Functions
 # =============================
 def load_data_by_citizen_id(citizen_id):
     data = data_all[data_all['เลขบัตรประชาชน'] == citizen_id]
@@ -58,35 +68,18 @@ def interpret_bmi(bmi):
         return "ผอม"
 
 # =============================
-# 🔹 HOMEPAGE
+# ✅ Homepage
 # =============================
-import streamlit.components.v1 as components
-
 def homepage():
-    components.iframe("https://github.com/praetinee/health-check-app/blob/main/index.html", height=650, scrolling=False)
-
-    # แสดง input แยกถัดจากภาพ
-    st.markdown("### ")
-    st.markdown("### ")
-    st.markdown("### ")
-    st.markdown("## 🔍 กรุณาใส่เลขบัตรประชาชน 13 หลัก")
-    id_input = st.text_input("หมายเลขบัตรประชาชน", max_chars=13, label_visibility="collapsed", placeholder="กรอกเลขบัตรประชาชน 13 หลัก")
-
-    if st.button("ตรวจสอบ"):
-        if id_input:
-            st.session_state["citizen_id"] = id_input
-            st.session_state["page"] = "report"
-        else:
-            st.warning("กรุณากรอกเลขบัตรประชาชนให้ครบถ้วน")
+    components.iframe("https://praetinee.github.io/health-check-app/index.html", height=650, scrolling=False)
 
 # =============================
-# 🔹 SHOW BMI
+# ✅ Show BMI Category
 # =============================
 def show_bmi(df):
     st.header("⚖️ น้ำหนัก / ส่วนสูง / BMI รายปี")
 
-    years = list(range(61, 69))  # พ.ศ. 2561 - 2568
-
+    years = list(range(61, 69))
     weights, heights, bmis, results = [], [], [], []
 
     for year in years:
@@ -115,7 +108,6 @@ def show_bmi(df):
         results.append(result)
 
     years_display = [f"พ.ศ. 25{y}" for y in years]
-
     st.markdown("### 📆 ปีที่ตรวจ:")
     st.markdown(" / ".join(years_display))
     st.markdown("### ⚖️ น้ำหนัก (กก.):")
@@ -128,7 +120,7 @@ def show_bmi(df):
     st.markdown(" / ".join(results))
 
 # =============================
-# 🔹 ROUTING (PAGE SWITCH)
+# ✅ Routing
 # =============================
 if "page" not in st.session_state:
     st.session_state["page"] = "home"
@@ -142,6 +134,5 @@ elif st.session_state["page"] == "report":
 
     if df is not None:
         show_bmi(df)
-        # 🔁 ต่อด้วย show_blood(df), show_ekg(df) ได้เลย
     else:
         st.error("ไม่พบข้อมูลในระบบ กรุณาตรวจสอบเลขบัตรประชาชนอีกครั้ง")
