@@ -62,23 +62,21 @@ def interpret_bmi(bmi):
 # =============================
 def homepage():
     image = Image.open("DB Homepage.png")
-    col1, col2, col3 = st.columns([1, 2, 1])
+    st.image(image, use_container_width=True)  # ✅ ใช้ use_container_width แทน use_column_width
 
-    with col2:
-        st.image(image, use_column_width=True)
-        st.markdown("### ")
-        st.markdown("### ")
-        st.markdown("### ")
-        st.markdown("### ")
+    # แสดง input แยกถัดจากภาพ
+    st.markdown("### ")
+    st.markdown("### ")
+    st.markdown("### ")
+    st.markdown("## 🔍 กรุณาใส่เลขบัตรประชาชน 13 หลัก")
+    id_input = st.text_input("หมายเลขบัตรประชาชน", max_chars=13, label_visibility="collapsed", placeholder="กรอกเลขบัตรประชาชน 13 หลัก")
 
-        id_input = st.text_input(" ", placeholder="กรอกเลขบัตรประชาชน 13 หลัก")
-
-        if st.button("🔍 ค้นหา"):
-            if id_input:
-                st.session_state["citizen_id"] = id_input
-                st.session_state["page"] = "report"
-            else:
-                st.warning("กรุณากรอกเลขบัตรประชาชน")
+    if st.button("ตรวจสอบ"):
+        if id_input:
+            st.session_state["citizen_id"] = id_input
+            st.session_state["page"] = "report"
+        else:
+            st.warning("กรุณากรอกเลขบัตรประชาชนให้ครบถ้วน")
 
 # =============================
 # 🔹 SHOW BMI
