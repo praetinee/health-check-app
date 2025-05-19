@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <title>ตรวจสุขภาพ</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-image: url("https://raw.githubusercontent.com/praetinee/health-check-app/main/DB%20Homepage.png");
+            background-size: cover;
+            background-position: center;
+            font-family: 'Kanit', sans-serif;
+        }
+        .overlay {
+            position: absolute;
+            top: 62%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        input[type="text"] {
+            font-size: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            width: 320px;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+        }
+        button {
+            margin-top: 10px;
+            font-size: 18px;
+            padding: 8px 16px;
+            background-color: #006699;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <input type="text" id="cid" placeholder="กรอกเลขบัตรประชาชน 13 หลัก">
+        <button onclick="submitID()">🔍 ค้นหา</button>
+    </div>
+
+    <script>
+        function submitID() {
+            const cid = document.getElementById("cid").value;
+            if (cid.length === 13) {
+                window.location.href = "?cid=" + cid;
+            } else {
+                alert("กรุณากรอกเลขบัตรประชาชนให้ครบ 13 หลัก");
+            }
+        }
+    </script>
+</body>
+</html>
