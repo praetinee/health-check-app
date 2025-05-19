@@ -60,4 +60,89 @@ def interpret_bmi(bmi):
 # =============================
 # 🔹 HOMEPAGE
 # =============================
-def homepage(
+def homepage():
+    image = Image.open("DB Homepage.png")
+    col1, col2, col3 = st.columns([1, 2, 1])
+
+    with col2:
+        st.image(image, use_column_width=True)
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+
+        id_input = st.text_input(" ", placeholder="กรอกเลขบัตรประชาชน 13 หลัก")
+
+        if st.button("🔍 ค้นหา"):
+            if id_input:
+                st.session_state["citizen_id"] = id_input
+                st.session_state["page"] = "report"
+            else:
+                st.warning("กรุณากรอกเลขบัตรประชาชน")
+
+# =============================
+# 🔹 SHOW BMI
+# =============================
+def show_bmi(df):
+    st.header("⚖️ น้ำหนัก / ส่วนสูง / BMI รายปี")
+
+    years = list(range(61, 69))  # พ.ศ. 2561 - 2568
+
+    weights, heights, bmis, results = [], [], [], []
+
+    for year in years:
+        w_col = f"น้ำหนัก{year}"
+        h_col = f"ส่วนสูง{year}"
+
+        weight = df.iloc[0].get(w_col, None)
+        height = df.iloc[0].get(h_col, None)
+
+        try:
+            weight = float(weight)
+        except:
+            weight = None
+
+        try:
+            height = float(height)
+        except:
+            height = None
+
+        bmi = calculate_bmi(weight, height)
+        result = interpret_bmi(bmi)
+
+        weights.append(str(int(weight)) if weight else "-")
+        heights.append(str(int(height)) if height else "-")
+        bmis.append(f"{bmi:.1f}" if bmi else "-")
+        results.append(result)
+
+    years_display = [f"พ.ศ. 25{y}" for y in years]
+
+    st.markdown("### 📆 ปีที่ตรวจ:")
+    st.markdown(" / ".join(years_display))
+    st.markdown("### ⚖️ น้ำหนัก (กก.):")
+    st.markdown(" / ".join(weights))
+    st.markdown("### 📏 ส่วนสูง (ซม.):")
+    st.markdown(" / ".join(heights))
+    st.markdown("### 🧮 BMI:")
+    st.markdown(" / ".join(bmis))
+    st.markdown("### ✅ แปลผล:")
+    st.markdown(" / ".join(results))
+
+# =============================
+# 🔹 ROUTING (PAGE SWITCH)
+# =============================
+if "page" not in st.session_state:
+    st.session_state["page"] = "home"
+
+if st.session_state["page"] == "home":
+    homepage()
+
+elif st.session_state["page"] == "report":
+    citizen_id = st.session_state.get("citizen_id", "")
+    df = load_data_by_citizen_id(citizen_id)
+
+    if df is not None:
+        show_bmi(df)
+        # 🔁 ต่อด้วย show_blood(df), show_ekg(df) ได้เลย
+    else:
+        st.error("ไม่พบข้อมูลในระบบ กรุณาตรวจสอบเลขบัตรประชาชนอีกครั้ง")
