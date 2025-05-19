@@ -41,8 +41,8 @@ def calculate_bmi(weight, height_cm):
         return None
 
 def interpret_bmi(bmi):
-    if not bmi or bmi == 0:
-        return "ไม่มีข้อมูล"
+    if not bmi or bmi == 0 or pd.isna(bmi):
+        return "-"
     elif bmi > 30:
         return "อ้วนมาก"
     elif 25 <= bmi <= 30:
@@ -55,46 +55,57 @@ def interpret_bmi(bmi):
         return "ผอม"
 
 def show_bmi(df):
-    st.header("⚖️ น้ำหนัก / ส่วนสูง / BMI")
+    st.header("⚖️ น้ำหนัก / ส่วนสูง / BMI รายปี")
 
-    year_options = [str(y) for y in range(61, 69)]
-    selected_year = st.selectbox("เลือกปี พ.ศ.", year_options[::-1])
+    years = list(range(61, 69))  # ปี 2561 ถึง 2568
 
-    weight_col = f"น้ำหนัก{selected_year}"
-    height_col = f"ส่วนสูง{selected_year}"
-    bmi_col = f"BMI{selected_year}"
-    waist_col = f"รอบเอว{selected_year}"
+    weights = []
+    heights = []
+    bmis = []
+    results = []
 
-    weight = df.iloc[0].get(weight_col)
-    height = df.iloc[0].get(height_col)
-    waist = df.iloc[0].get(waist_col)
+    for year in years:
+        w_col = f"น้ำหนัก{year}"
+        h_col = f"ส่วนสูง{year}"
 
-    # แปลงค่าที่มีให้อยู่ในรูป float ถ้าเป็นไปได้
-    try:
-        weight = float(weight)
-    except:
-        weight = None
+        weight = df.iloc[0].get(w_col, None)
+        height = df.iloc[0].get(h_col, None)
 
-    try:
-        height = float(height)
-    except:
-        height = None
+        try:
+            weight = float(weight)
+        except:
+            weight = None
 
-    try:
-        waist = float(waist)
-    except:
-        waist = None
+        try:
+            height = float(height)
+        except:
+            height = None
 
-    # คำนวณ BMI จาก weight & height
-    bmi = calculate_bmi(weight, height)
-    bmi_result = interpret_bmi(bmi)
+        bmi = calculate_bmi(weight, height)
+        result = interpret_bmi(bmi)
 
-    # แสดงผล
-    st.markdown(f"**น้ำหนัก:** {weight if weight else '-'} กก.")
-    st.markdown(f"**ส่วนสูง:** {height if height else '-'} ซม.")
-    st.markdown(f"**รอบเอว:** {waist if waist else '-'} ซม.")
-    st.markdown(f"**BMI:** {bmi if bmi else '-'}")
-    st.success(f"แปลผล: {bmi_result}")
+        weights.append(str(int(weight)) if weight else "-")
+        heights.append(str(int(height)) if height else "-")
+        bmis.append(f"{bmi:.1f}" if bmi else "-")
+        results.append(result)
+
+    # แปลงปีเป็น พ.ศ.
+    years_display = [f"พ.ศ. 25{y}" for y in years]
+
+    st.markdown("### 📆 ปีที่ตรวจ:")
+    st.markdown(" / ".join(years_display))
+
+    st.markdown("### ⚖️ น้ำหนัก (กก.):")
+    st.markdown(" / ".join(weights))
+
+    st.markdown("### 📏 ส่วนสูง (ซม.):")
+    st.markdown(" / ".join(heights))
+
+    st.markdown("### 🧮 BMI:")
+    st.markdown(" / ".join(bmis))
+
+    st.markdown("### ✅ แปลผล:")
+    st.markdown(" / ".join(results))
 
 # --- หน้าแรกของระบบ ---
 st.title("👨‍⚕️ ระบบรายงานผลตรวจสุขภาพ")
