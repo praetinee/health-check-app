@@ -1,3 +1,19 @@
+if "page" not in st.session_state:
+    st.session_state["page"] = "home"
+
+if st.session_state["page"] == "home":
+    homepage()
+
+elif st.session_state["page"] == "report":
+    # เข้าสู่ระบบการโหลดข้อมูลตามเลขบัตร
+    citizen_id = st.session_state.get("citizen_id", "")
+    df = load_data_by_citizen_id(citizen_id)  # คุณมีฟังก์ชันนี้อยู่แล้ว
+    if df is not None:
+        show_bmi(df)
+        # เรียกฟังก์ชันอื่นๆ เช่น show_blood(df), show_ekg(df)
+    else:
+        st.error("ไม่พบข้อมูล")
+
 import streamlit as st
 import pandas as pd
 import gspread
@@ -108,30 +124,37 @@ def show_bmi(df):
     st.markdown(" / ".join(results))
 
 # --- หน้าแรกของระบบ ---
-st.title("👨‍⚕️ ระบบรายงานผลตรวจสุขภาพ")
-id_card = st.text_input("กรอกเลขบัตรประชาชน 13 หลัก")
+import streamlit as st
+import pandas as pd
+import gspread
+from oauth2client.service_account import ServiceAccountCredentials
+from PIL import Image
 
-if id_card:
-    person = df[df["เลขบัตรประชาชน"] == id_card]
+# =========================
+# 🔹 โหลดภาพพื้นหลัง
+# =========================
+def homepage():
+    st.set_page_config(layout="wide")
+    image = Image.open("DB Homepage.png")
 
-    if person.empty:
-        st.error("ไม่พบข้อมูลในระบบ")
-    else:
-        df = person  # ใช้ข้อมูลของคนนั้น
-        name = df.iloc[0]["ชื่อ-สกุล"]
-        st.success(f"คุณ {name}")
+    # ใช้ columns เพื่อจัดกลางและวางช่อง input ใต้ภาพ
+    col1, col2, col3 = st.columns([1, 2, 1])
 
-        st.subheader("📂 กรุณาเลือกหมวดหมู่:")
-        col1, col2, col3 = st.columns(3)
+    with col2:
+        st.image(image, use_column_width=True)
 
-        with col1:
-            if st.button("⚖️ น้ำหนัก / BMI"):
-                show_bmi(df)
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
 
-        with col2:
-            if st.button("🩸 ผลตรวจเลือด"):
-                st.info("ฟังก์ชันนี้ยังไม่เปิดใช้งาน")
+        # ช่องกรอกบัตรประชาชน
+        id_input = st.text_input(" ", placeholder="กรอกเลขบัตรประชาชน 13 หลัก")
 
-        with col3:
-            if st.button("💓 ความดัน / ชีพจร"):
-                st.info("ฟังก์ชันนี้ยังไม่เปิดใช้งาน")
+        if st.button("🔍 ค้นหา"):
+            if id_input:
+                st.session_state["citizen_id"] = id_input
+                st.session_state["page"] = "report"
+            else:
+                st.warning("กรุณากรอกเลขบัตรประชาชน")
+
