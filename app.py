@@ -60,9 +60,10 @@ def interpret_bmi(bmi):
 # =============================
 # 🔹 HOMEPAGE
 # =============================
+import streamlit.components.v1 as components
+
 def homepage():
-    image = Image.open("DB Homepage.png")
-    st.image(image, use_container_width=True)  # ✅ ใช้ use_container_width แทน use_column_width
+    components.iframe("https://github.com/praetinee/health-check-app/blob/main/index.html", height=650, scrolling=False)
 
     # แสดง input แยกถัดจากภาพ
     st.markdown("### ")
