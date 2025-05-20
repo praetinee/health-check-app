@@ -1,23 +1,15 @@
-# 🔹 คำสั่งนี้ต้องอยู่บรรทัดแรกสุด
 import streamlit as st
-st.set_page_config(page_title="ระบบรายงานสุขภาพ", layout="centered")
-
-# 🔹 ส่วนที่เหลือ
 import pandas as pd
 import gspread
 import json
 from oauth2client.service_account import ServiceAccountCredentials
 from PIL import Image
-import streamlit.components.v1 as components
 
-# 🔹 Query Parameters (รองรับ ?cid=xxxxx)
-query_params = st.query_params
-if "cid" in query_params:
-    st.session_state["citizen_id"] = query_params["cid"]
-    st.session_state["page"] = "report"
+# ✅ Page config ต้องอยู่บรรทัดบนสุดเสมอ
+st.set_page_config(page_title="ระบบรายงานสุขภาพ", layout="centered")
 
 # =============================
-# 🔹 โหลด Google Sheet
+# 🔹 LOAD GOOGLE SHEET
 # =============================
 service_account_info = json.loads(st.secrets["GCP_SERVICE_ACCOUNT"])
 scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -30,13 +22,14 @@ data_all = pd.DataFrame(worksheet.get_all_records())
 data_all['เลขบัตรประชาชน'] = data_all['เลขบัตรประชาชน'].astype(str)
 
 # =============================
-# 🔹 ฟังก์ชันช่วย
+# 🔹 HELPER FUNCTIONS
 # =============================
 def load_data_by_citizen_id(citizen_id):
     data = data_all[data_all['เลขบัตรประชาชน'] == citizen_id]
     if not data.empty:
         return data.reset_index(drop=True)
-    return None
+    else:
+        return None
 
 def calculate_bmi(weight, height_cm):
     try:
@@ -60,32 +53,47 @@ def interpret_bmi(bmi):
         return "ผอม"
 
 # =============================
-# 🔹 หน้า Homepage
+# 🔹 HOMEPAGE
 # =============================
 def homepage():
-    st.markdown("## 🧬 ระบบรายงานสุขภาพ")
+    st.markdown("<h1 style='text-align: center; color: #106c78;'>ระบบรายงาน<br>ผลตรวจสุขภาพ</h1>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center; color: #106c78;'>- กลุ่มงานอาชีวเวชกรรม รพ.สันทราย -</h4>", unsafe_allow_html=True)
     
-    # 🔸 โหลดหน้า HTML จาก GitHub Pages (แนะนำให้คุณเปิดใช้งาน GitHub Pages ก่อน)
-    components.iframe("https://praetinee.github.io/health-check-app/", height=640, scrolling=False)
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
+        st.markdown("### ")
 
-    # 🔸 ช่องกรอกเลขบัตรด้านล่าง iframe (ซ่อน label)
-    st.markdown("## 🔍 กรุณาใส่เลขบัตรประชาชน 13 หลัก")
-    citizen_id = st.text_input("หมายเลขบัตรประชาชน", max_chars=13, placeholder="กรอกเลขบัตรประชาชน", label_visibility="collapsed")
+        st.markdown("### 🔍 กรุณาใส่เลขบัตรประชาชน 13 หลัก")
+        id_input = st.text_input("หมายเลขบัตรประชาชน", max_chars=13, label_visibility="collapsed", placeholder="กรอกเลขบัตรประชาชน")
 
-    if st.button("ตรวจสอบ"):
-        if citizen_id:
-            st.session_state["citizen_id"] = citizen_id
-            st.session_state["page"] = "report"
-        else:
-            st.warning("⚠️ กรุณากรอกเลขบัตรประชาชนให้ครบถ้วน")
+        if st.button("ตรวจสอบ"):
+            if id_input:
+                st.session_state["citizen_id"] = id_input
+                st.session_state["page"] = "report"
+            else:
+                st.warning("กรุณากรอกเลขบัตรประชาชนให้ครบถ้วน")
+
+    with col2:
+        image = Image.open("magnifying glass.png")
+        st.image(image, use_container_width=True)
 
 # =============================
-# 🔹 หน้าแสดง BMI
+# 🔹 BMI DISPLAY PAGE
 # =============================
 def show_bmi(df):
     st.header("⚖️ น้ำหนัก / ส่วนสูง / BMI รายปี")
 
-    years = list(range(61, 69))  # 2561 - 2568
+    years = list(range(61, 69))
     weights, heights, bmis, results = [], [], [], []
 
     for year in years:
@@ -99,7 +107,6 @@ def show_bmi(df):
             weight = float(weight)
         except:
             weight = None
-
         try:
             height = float(height)
         except:
@@ -127,13 +134,19 @@ def show_bmi(df):
     st.markdown(" / ".join(results))
 
 # =============================
-# 🔹 Routing หน้า
+# 🔹 ROUTING
 # =============================
 if "page" not in st.session_state:
     st.session_state["page"] = "home"
 
+query_params = st.query_params
+if "cid" in query_params:
+    st.session_state["citizen_id"] = query_params["cid"]
+    st.session_state["page"] = "report"
+
 if st.session_state["page"] == "home":
     homepage()
+
 elif st.session_state["page"] == "report":
     citizen_id = st.session_state.get("citizen_id", "")
     df = load_data_by_citizen_id(citizen_id)
