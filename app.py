@@ -43,7 +43,7 @@ def calc_bmi(w, h):
         return None
 
 def interpret_bmi(bmi):
-    if not bmi: return "-"
+    if not bmi: return None
     if bmi > 30: return "อ้วนมาก"
     elif bmi >= 25: return "อ้วน"
     elif bmi >= 23: return "น้ำหนักเกิน"
@@ -53,21 +53,31 @@ def interpret_bmi(bmi):
 def interpret_bp(sbp, dbp):
     try:
         sbp, dbp = float(sbp), float(dbp)
-        if sbp == 0 or dbp == 0: return "-"
+        if sbp == 0 or dbp == 0: return None
         if sbp >= 160 or dbp >= 100: return "ความดันโลหิตสูง"
         elif sbp >= 140 or dbp >= 90: return "ความดันสูงเล็กน้อย"
         elif sbp < 120 and dbp < 80: return "ความดันปกติ"
         else: return "ปกติค่อนข้างสูง"
     except:
-        return "-"
+        return None
 
 def assess_waist(waist, threshold=90):
     try:
         waist = float(waist)
-        if waist == 0: return "-"
-        return "เกินเกณฑ์" if waist > threshold else "ปกติ"
+        if waist == 0: return None
+        return "รอบเอวเกินเกณฑ์" if waist > threshold else "รอบเอวปกติ"
     except:
-        return "-"
+        return None
+
+def combined_interpret(bmi_result, waist_result, bp_result):
+    parts = []
+    if bmi_result:
+        parts.append(f"น้ำหนัก{bmi_result}")
+    if waist_result:
+        parts.append(waist_result)
+    if bp_result:
+        parts.append(bp_result)
+    return " / ".join(parts) if parts else "-"
 
 # ===============================
 # SEARCH UI
@@ -93,7 +103,7 @@ if st.button("ตรวจสอบ"):
             years = list(range(61, 69))  # พ.ศ. 2561 - 2568
             display_years = [f"พ.ศ. 25{y}" for y in years]
 
-            # เตรียมข้อมูล
+            # ดึงข้อมูลจากแต่ละปี
             def get_values(prefix):
                 return [person.get(f"{prefix}{y}", "-") for y in years]
 
@@ -103,16 +113,19 @@ if st.button("ตรวจสอบ"):
             sbps = get_values("SBP")
             dbps = get_values("DBP")
 
-            # คำนวณและแปลผล
-            bmis, bmi_results, bp_results, waist_results, bp_values = [], [], [], [], []
+            bmi_results = []
+            bp_values = []
+            interpretations = []
 
             for w, h, sbp, dbp, waist in zip(weights, heights, sbps, dbps, waists):
                 bmi = calc_bmi(w, h)
-                bmis.append(f"{bmi:.1f}" if bmi else "-")
-                bmi_results.append(interpret_bmi(bmi))
-                bp_results.append(interpret_bp(sbp, dbp))
+                bmi_result = interpret_bmi(bmi)
+                waist_result = assess_waist(waist)
+                bp_result = interpret_bp(sbp, dbp)
+
+                bmi_results.append(f"{bmi:.1f}" if bmi else "-")
                 bp_values.append(f"{sbp}/{dbp}" if sbp != "-" and dbp != "-" else "-")
-                waist_results.append(assess_waist(waist))
+                interpretations.append(combined_interpret(bmi_result, waist_result, bp_result))
 
             # สร้าง DataFrame แสดงผล
             summary_df = pd.DataFrame({
@@ -120,12 +133,10 @@ if st.button("ตรวจสอบ"):
                 "น้ำหนัก (กก.)": weights,
                 "ส่วนสูง (ซม.)": heights,
                 "รอบเอว (ซม.)": waists,
-                "BMI": bmis,
-                "แปลผล BMI": bmi_results,
                 "ค่าความดัน (mmHg)": bp_values,
-                "แปลผลความดัน": bp_results,
-                "ประเมินรอบเอว": waist_results,
+                "แปลผลรวม": interpretations
             })
 
-            st.markdown("### 📊 ผลประเมินสุขภาพรายปี")
+            # แสดงผลแบบแนวนอน
+            st.markdown("### 🩺 น้ำหนัก/รอบเอว/ความดัน")
             st.dataframe(summary_df.set_index("ปี พ.ศ.").T, use_container_width=True)
