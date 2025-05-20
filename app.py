@@ -134,7 +134,7 @@ if st.button("ตรวจสอบ"):
                 "ส่วนสูง (ซม.)": heights,
                 "รอบเอว (ซม.)": waists,
                 "ค่าความดัน (mmHg)": bp_values,
-                "แปลผลรวม": interpretations
+                "แปลผล": interpretations
             })
 
             # แสดงผลแบบแนวนอน
