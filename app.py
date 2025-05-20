@@ -176,7 +176,7 @@ if st.button("ตรวจสอบ"):
             if rbc == "":
                 rbc_result = ""
             elif rbc.lower() in ["negative", "0-1", "1-2", "2-3", "3-5"]:
-                rbc_result = "เม็ดเลือดแดงในปัสสาวะปกติ"
+                rbc_result = "ปกติ"
             elif rbc in ["5-10", "10-20"]:
                 rbc_result = "พบเม็ดเลือดแดงในปัสสาวะเล็กน้อย"
             else:
@@ -185,7 +185,7 @@ if st.button("ตรวจสอบ"):
             if wbc == "":
                 wbc_result = ""
             elif wbc.lower() in ["negative", "0-1", "1-2", "2-3", "3-5"]:
-                wbc_result = "เม็ดเลือดขาวในปัสสาวะปกติ"
+                wbc_result = "ปกติ"
             elif wbc in ["5-10", "10-20"]:
                 wbc_result = "พบเม็ดเลือดขาวในปัสสาวะเล็กน้อย"
             else:
