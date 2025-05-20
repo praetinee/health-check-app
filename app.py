@@ -85,13 +85,30 @@ def combined_interpret(bmi_result, waist_result, bp_result):
 st.markdown("<h1 style='text-align:center;'>ระบบรายงานผลตรวจสุขภาพ</h1>", unsafe_allow_html=True)
 st.markdown("<h4 style='text-align:center; color:gray;'>- กลุ่มงานอาชีวเวชกรรม รพ.สันทราย -</h4>", unsafe_allow_html=True)
 
-citizen_id = st.text_input("กรอกเลขบัตรประชาชน", max_chars=13, placeholder="เช่น 1234567890123")
+col1, col2, col3 = st.columns(3)
+with col1:
+    citizen_id = st.text_input("เลขบัตรประชาชน", max_chars=13, placeholder="เช่น 1234567890123")
+with col2:
+    hn = st.text_input("HN", placeholder="เช่น 123456")
+with col3:
+    full_name = st.text_input("ชื่อ-สกุล", placeholder="เช่น สมชาย ใจดี")
 
 if st.button("ตรวจสอบ"):
-    if not citizen_id.strip():
-        st.warning("⚠️ กรุณากรอกเลขบัตรประชาชน")
+    if not (citizen_id.strip() or hn.strip() or full_name.strip()):
+        st.warning("⚠️ กรุณากรอกอย่างน้อยหนึ่งช่องเพื่อค้นหา")
     else:
-        matched = df[df["เลขบัตรประชาชน"] == citizen_id.strip()]
+        # ค้นหาด้วยเงื่อนไขใดเงื่อนไขหนึ่ง
+        matched = df[
+            (df["เลขบัตรประชาชน"] == citizen_id.strip()) |
+            (df["HN"].astype(str) == hn.strip()) |
+            (df["ชื่อ-สกุล"].str.contains(full_name.strip(), case=False, na=False))
+        ]
+
+        if matched.empty:
+            st.error("❌ ไม่พบข้อมูล กรุณาตรวจสอบอีกครั้ง")
+        else:
+            person = matched.iloc[0]
+
         if matched.empty:
             st.error("ไม่พบข้อมูล กรุณาตรวจสอบอีกครั้ง")
         else:
