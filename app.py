@@ -12,7 +12,7 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Sarabun&display=swap');
     html, body, [class*="css"] {
-        font-family: 'Sarabun', sans-serif;
+        font-family: 'Sarabun', sans-serif !important;
     }
     </style>
 """, unsafe_allow_html=True)
@@ -103,17 +103,15 @@ if st.button("ตรวจสอบ"):
             sbps = get_values("SBP")
             dbps = get_values("DBP")
 
-            # คำนวณ BMI และผล
-            bmis = []
-            bmi_results = []
-            bp_results = []
-            waist_results = []
+            # คำนวณและแปลผล
+            bmis, bmi_results, bp_results, waist_results, bp_values = [], [], [], [], []
 
             for w, h, sbp, dbp, waist in zip(weights, heights, sbps, dbps, waists):
                 bmi = calc_bmi(w, h)
                 bmis.append(f"{bmi:.1f}" if bmi else "-")
                 bmi_results.append(interpret_bmi(bmi))
                 bp_results.append(interpret_bp(sbp, dbp))
+                bp_values.append(f"{sbp}/{dbp}" if sbp != "-" and dbp != "-" else "-")
                 waist_results.append(assess_waist(waist))
 
             # สร้าง DataFrame แสดงผล
@@ -124,7 +122,8 @@ if st.button("ตรวจสอบ"):
                 "รอบเอว (ซม.)": waists,
                 "BMI": bmis,
                 "แปลผล BMI": bmi_results,
-                "ความดันโลหิต": bp_results,
+                "ค่าความดัน (mmHg)": bp_values,
+                "แปลผลความดัน": bp_results,
                 "ประเมินรอบเอว": waist_results,
             })
 
