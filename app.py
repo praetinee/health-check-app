@@ -191,18 +191,21 @@ if st.button("ตรวจสอบ"):
             else:
                 wbc_result = "พบเม็ดเลือดขาวในปัสสาวะ"
 
-            abnormal_flags = [
-                "พบโปรตีนในปัสสาวะ" in alb_result,
-                "พบน้ำตาลในปัสสาวะ" in sugar_result,
-                "พบเม็ดเลือดแดงในปัสสาวะ" in rbc_result,
-                "พบเม็ดเลือดขาวในปัสสาวะ" in wbc_result
-            ]
-            if all(v == "" for v in [alb_result, sugar_result, rbc_result, wbc_result]):
-                overall_result = "-"
-            elif any(abnormal_flags):
-                overall_result = "ผลปัสสาวะผิดปกติ"
-            else:
-                overall_result = "ปัสสาวะปกติ"
+            # สรุปผลรวม
+abnormal_flags = [
+    alb_result not in ["", "ไม่พบโปรตีนในปัสสาวะ", "พบโปรตีนในปัสสาวะเล็กน้อย"],
+    sugar_result not in ["", "ไม่พบน้ำตาลในปัสสาวะ", "พบน้ำตาลในปัสสาวะเล็กน้อย"],
+    rbc_result not in ["", "ปกติ", "เม็ดเลือดแดงในปัสสาวะปกติ"],
+    wbc_result not in ["", "ปกติ", "เม็ดเลือดขาวในปัสสาวะปกติ"]
+]
+
+if all(v == "" for v in [alb_result, sugar_result, rbc_result, wbc_result]):
+    overall_result = "-"
+elif any(abnormal_flags):
+    overall_result = "ผลปัสสาวะผิดปกติ"
+else:
+    overall_result = "ปัสสาวะปกติ"
+
 
             st.markdown(f"""
             <table style='width:100%; font-size:20px; border-collapse: collapse;' border=1>
