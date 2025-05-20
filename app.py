@@ -72,7 +72,7 @@ def assess_waist(waist, threshold=90):
 def combined_interpret(bmi_result, waist_result, bp_result):
     parts = []
     if bmi_result:
-        parts.append(f"น้ำหนัก{bmi_result}")
+        parts.append(f"{bmi_result}")
     if waist_result:
         parts.append(waist_result)
     if bp_result:
