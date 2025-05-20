@@ -103,7 +103,6 @@ if st.button("ตรวจสอบ"):
             years = list(range(61, 69))  # พ.ศ. 2561 - 2568
             display_years = [f"พ.ศ. 25{y}" for y in years]
 
-            # ดึงข้อมูลจากแต่ละปี
             def get_values(prefix):
                 return [person.get(f"{prefix}{y}", "-") for y in years]
 
@@ -127,7 +126,6 @@ if st.button("ตรวจสอบ"):
                 bp_values.append(f"{sbp}/{dbp}" if sbp != "-" and dbp != "-" else "-")
                 interpretations.append(combined_interpret(bmi_result, waist_result, bp_result))
 
-            # แสดงน้ำหนัก รอบเอว ความดัน
             summary_df = pd.DataFrame({
                 "ปี พ.ศ.": display_years,
                 "น้ำหนัก (กก.)": weights,
@@ -149,7 +147,6 @@ if st.button("ตรวจสอบ"):
             sugar = person.get("sugar68", "").strip()
             rbc = person.get("RBC168", "").strip()
             wbc = person.get("WBC168", "").strip()
-            sex = person.get("เพศ", "").strip()
 
             if alb == "":
                 alb_result = ""
@@ -191,21 +188,20 @@ if st.button("ตรวจสอบ"):
             else:
                 wbc_result = "พบเม็ดเลือดขาวในปัสสาวะ"
 
-            # สรุปผลรวม
-abnormal_flags = [
-    alb_result not in ["", "ไม่พบโปรตีนในปัสสาวะ", "พบโปรตีนในปัสสาวะเล็กน้อย"],
-    sugar_result not in ["", "ไม่พบน้ำตาลในปัสสาวะ", "พบน้ำตาลในปัสสาวะเล็กน้อย"],
-    rbc_result not in ["", "ปกติ", "เม็ดเลือดแดงในปัสสาวะปกติ"],
-    wbc_result not in ["", "ปกติ", "เม็ดเลือดขาวในปัสสาวะปกติ"]
-]
+            # ✅ แก้ตรงนี้ให้ตรวจค่าแบบตรง
+            abnormal_flags = [
+                alb_result not in ["", "ไม่พบโปรตีนในปัสสาวะ", "พบโปรตีนในปัสสาวะเล็กน้อย"],
+                sugar_result not in ["", "ไม่พบน้ำตาลในปัสสาวะ", "พบน้ำตาลในปัสสาวะเล็กน้อย"],
+                rbc_result not in ["", "ปกติ", "เม็ดเลือดแดงในปัสสาวะปกติ"],
+                wbc_result not in ["", "ปกติ", "เม็ดเลือดขาวในปัสสาวะปกติ"]
+            ]
 
-if all(v == "" for v in [alb_result, sugar_result, rbc_result, wbc_result]):
-    overall_result = "-"
-elif any(abnormal_flags):
-    overall_result = "ผลปัสสาวะผิดปกติ"
-else:
-    overall_result = "ปัสสาวะปกติ"
-
+            if all(v == "" for v in [alb_result, sugar_result, rbc_result, wbc_result]):
+                overall_result = "-"
+            elif any(abnormal_flags):
+                overall_result = "ผลปัสสาวะผิดปกติ"
+            else:
+                overall_result = "ปัสสาวะปกติ"
 
             st.markdown(f"""
             <table style='width:100%; font-size:20px; border-collapse: collapse;' border=1>
